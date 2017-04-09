@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 )
@@ -26,7 +27,8 @@ func main() {
 		port = ":" + arg[1]
 	}
 
-	fmt.Printf("From: %s\nListening localhost%s\n", dir, port)
+	ip := getIPAddress()
+	fmt.Printf("From: %s\nListening: %s%s\n", dir, ip, port)
 
 	server := http.Server{
 		Addr: port,
@@ -40,4 +42,22 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+}
+
+// get ip address
+func getIPAddress() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println(err)
+		return "Cann't get IP address!"
+	}
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok {
+			if !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
 }
